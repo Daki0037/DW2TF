@@ -29,7 +29,7 @@ def cfg_net(B, H, W, C, net, param, weights_walker, stack, output_index, scope, 
     width = int(param["width"])
     height = int(param["height"])
     channels = int(param["channels"])
-    net = tf.placeholder(tf.float32, [None, width, height, channels], name=scope)
+    net = tf.placeholder(tf.float32, [None, height, width, channels], name=scope)
     return net
 
 
@@ -38,7 +38,14 @@ def cfg_convolutional(B, H, W, C, net, param, weights_walker, stack, output_inde
     size = int(param['size'])
     filters = int(param['filters'])
     stride = int(param['stride'])
-    pad = 'same' if param['pad'] == '1' else 'valid'
+    if stride > 1:
+        pad_total = size - 1
+        pad_beg = pad_total // 2
+        pad_end = pad_total - pad_beg
+        net = tf.pad(net, [[0,0], [pad_beg, pad_end], [pad_beg, pad_end], [0,0]], mode='CONSTANT')
+        pad = 'valid'
+    else:
+        pad = 'same'
     activation = None
     weight_size = C * filters * size * size
 
@@ -161,7 +168,8 @@ def cfg_upsample(B, H, W, C, net, param, weights_walker, stack, output_index, sc
     stride = int(param['stride'])
     assert stride == 2
 
-    net = tf.image.resize_nearest_neighbor(net, (H * stride, W * stride), name=scope)
+    _, h, w, _ = net.shape.as_list()
+    net = tf.image.resize_images(net, (h*stride, w*stride), method=tf.image.ResizeMethod.NEAREST_NEIGHBOR, align_corners=True)
     return net
 
 
