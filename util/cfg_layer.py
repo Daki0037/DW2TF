@@ -168,8 +168,7 @@ def cfg_upsample(B, H, W, C, net, param, weights_walker, stack, output_index, sc
     stride = int(param['stride'])
     assert stride == 2
 
-    _, h, w, _ = net.shape.as_list()
-    net = tf.image.resize_images(net, (h*stride, w*stride), method=tf.image.ResizeMethod.NEAREST_NEIGHBOR, align_corners=True)
+    net = tf.image.resize_nearest_neighbor(net, (H * stride, W * stride), name=scope)
     return net
 
 
